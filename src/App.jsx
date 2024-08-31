@@ -12,9 +12,10 @@ function App() {
     e.preventDefault();
     setLoading(true);
     setError('');
-    const { VITE_API_URL } = import.meta.env;
+    
     try {
-      const response = await fetch(`${VITE_API_URL}/shorten/`, {
+      console.log(import.meta.env.VITE_API_URL,'---VITE_API_URL---');
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/shorten/`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -25,7 +26,7 @@ function App() {
         throw new Error('An error occurred while shortening the URL. Please try again.');
       }
       const data = await response.json();
-      setShortUrl(`${VITE_API_URL}/${data.short_url}`);
+      setShortUrl(`${import.meta.env.VITE_API_URL}/${data.short_url}`);
     } catch (err) {
       setError(err.message);
     } finally {

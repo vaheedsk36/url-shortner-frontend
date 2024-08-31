@@ -41,9 +41,13 @@ function App() {
           {shortUrl && (
             <div className="mt-4 text-center">
               <h2>Shortened URL:</h2>
-              <a href={shortUrl} target="_blank" rel="noopener noreferrer" className="btn btn-link">
+              <span className="btn btn-link" href={shortUrl} rel="noopener noreferrer" onClick={async()=>{
+                    const response = await fetch(shortUrl);
+                    const data = await response.json();
+                    window.open(data?.original_url, '_blank');
+              }}>
                 {shortUrl}
-              </a>
+              </span>
             </div>
           )}
         </div>

@@ -33,19 +33,7 @@ function App() {
       setLoading(false);
     }
   };
-  
-  const linkClickHandler = async()=>{
-    try{
-      const response = await fetch(shortUrl);
-      if(!response){
-        throw new Error('Unable to shorten URL');
-      }
-      const data = await response.json();
-      window.open(data?.original_url, '_blank');
-    }catch(err){
-      console.error(err);
-    }
-}
+
 
   const copyToClipboard = async () => {
     try {
@@ -83,12 +71,13 @@ function App() {
             <div className="mt-4 text-center">
               <h2>Shortened URL:</h2>
               <div className="d-flex justify-content-center align-items-center">
-                <span
+                <a
+                href={shortUrl}
+                target='_blank'
                   className="btn btn-link"
-                  onClick={linkClickHandler}
                 >
                   {shortUrl}
-                </span>
+                </a>
                 <button
                   className="btn btn-outline-secondary ml-3"
                   onClick={copyToClipboard}

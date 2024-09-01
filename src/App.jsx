@@ -1,29 +1,36 @@
-import { useState } from 'react';
-import { FaCopy } from 'react-icons/fa';
+import { useState } from "react";
+import { FaCopy } from "react-icons/fa";
+import QRCodeComponent from "./QRCodeComponent";
+import { Button, Popover, Input } from "antd";
+import { IoLinkSharp } from "react-icons/io5";
+import { FaShare, FaMagic, FaQrcode  } from "react-icons/fa";
+import { MdAutorenew } from "react-icons/md";
 
 function App() {
-  const [originalUrl, setOriginalUrl] = useState('');
-  const [shortUrl, setShortUrl] = useState('');
+  const [originalUrl, setOriginalUrl] = useState("");
+  const [shortUrl, setShortUrl] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [copySuccess, setCopySuccess] = useState('');
+  const [error, setError] = useState("");
+  const [copySuccess, setCopySuccess] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-    setError('');
-    
+    setError("");
+
     try {
-      console.log(import.meta.env.VITE_API_URL,'---VITE_API_URL---');
+      console.log(import.meta.env.VITE_API_URL, "---VITE_API_URL---");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/shorten/`, {
-        method: 'POST',
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({ original_url: originalUrl }),
       });
       if (!response.ok) {
-        throw new Error('An error occurred while shortening the URL. Please try again.');
+        throw new Error(
+          "An error occurred while shortening the URL. Please try again."
+        );
       }
       const data = await response.json();
       setShortUrl(`${import.meta.env.VITE_API_URL}/${data.short_url}`);
@@ -34,15 +41,20 @@ function App() {
     }
   };
 
-
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shortUrl);
-      setCopySuccess('URL copied to clipboard!');
+      setCopySuccess("URL copied to clipboard!");
     } catch (err) {
-      setError('Failed to copy URL. Please try again.');
+      setError("Failed to copy URL. Please try again.");
     }
   };
+
+  const resetFields = ()=> {
+    setShortUrl("");
+    setOriginalUrl("");
+    setCopySuccess("");
+  }
 
   return (
     <div className="App container mt-5">
@@ -51,41 +63,69 @@ function App() {
           <h1 className="card-title">URL Shortener</h1>
         </div>
         <div className="card-body">
-          <form onSubmit={handleSubmit}>
-            <div className="form-group">
-              <input
-                type="text"
-                className="form-control"
-                value={originalUrl}
-                onChange={(e) => setOriginalUrl(e.target.value)}
-                placeholder="Enter your URL"
-                required
-              />
+          <div className="form-group">
+            <div className="fs-5 d-flex align-items-center mb-2">
+              {" "}
+              <IoLinkSharp /> <span className="ms-2">URL to shorten</span>
             </div>
-            <button type="submit" className="btn btn-primary btn-block mt-3" disabled={loading}>
-              {loading ? 'Shortening...' : 'Shorten URL'}
-            </button>
-          </form>
+
+            <Input
+              size="large"
+              type="text"
+              value={originalUrl}
+              onChange={(e) => setOriginalUrl(e.target.value)}
+              placeholder="Enter your URL"
+              required
+              autoComplete
+            />
+            <Button
+            type="primary"
+            size="large"
+            className="mt-3"
+            loading={loading}
+            onClick={handleSubmit}
+            disabled={!originalUrl}
+            >
+              {loading ? "Shortening..." : "Shorten URL"}
+            </Button>
+          </div>
           {error && <div className="alert alert-danger mt-3">{error}</div>}
           {shortUrl && (
-            <div className="mt-4 text-center">
-              <h2>Shortened URL:</h2>
-              <div className="d-flex justify-content-center align-items-center">
-                <a
-                href={shortUrl}
-                target='_blank'
-                  className="btn btn-link"
-                >
-                  {shortUrl}
-                </a>
-                <button
-                  className="btn btn-outline-secondary ml-3"
-                  onClick={copyToClipboard}
-                >
-                  <FaCopy /> Copy
-                </button>
+            <div className="mt-3">
+              <div className="fs-5 d-flex align-items-center mb-2">
+                {" "}
+                <FaMagic /> <span className="ms-2">Shortened URL</span>
               </div>
-              {copySuccess && <div className="alert alert-success mt-3">{copySuccess}</div>}
+              <Input
+                size="large"
+                type="text"
+                value={shortUrl}
+                style={{ pointerEvents: "none" }}
+              />
+              <div className="mt-3 d-flex align-items-center">
+                <Button size="large" onClick={()=> window.open(shortUrl, "_blank")}>
+                  <FaShare />
+                </Button>
+                <Popover
+                  content={<QRCodeComponent url={shortUrl} />}
+                  trigger="click"
+                  placement="bottom"
+                >
+                <Button className="mx-2" size="large">
+                  <FaQrcode />
+                  <span>QR</span>
+                </Button>
+                </Popover>
+                <Button size="large"  onClick={copyToClipboard}>
+                  <FaCopy /> Copy
+                </Button>
+                <Button className="ms-2" size="large" onClick={resetFields}>
+                <MdAutorenew />
+                </Button>
+              </div>
+              {copySuccess && (
+                <div className="alert alert-success mt-3">{copySuccess}</div>
+              )}
             </div>
           )}
         </div>

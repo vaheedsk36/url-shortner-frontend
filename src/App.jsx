@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
 import { FaCopy } from "react-icons/fa";
 import QRCodeComponent from "./QRCodeComponent";
-import { Button, Popover, Input } from "antd";
+import { Button, Popover, Input, Drawer } from "antd";
 import { IoLinkSharp } from "react-icons/io5";
 import { FaShare, FaMagic, FaQrcode  } from "react-icons/fa";
-import { MdAutorenew } from "react-icons/md";
 import { v4 as uuidv4 } from 'uuid';
 
 function App() {
@@ -14,7 +13,11 @@ function App() {
   const [error, setError] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
   const [SSID,setSSID] = useState(localStorage.getItem("SSID"));
+  const [openDrawer,setOpenDrawer] = useState(false);
+  const [drawerWidth, setDrawerWidth] = useState('100%');
+  const [myUrls,setMyUrls] = useState([]);
 
+  
   useEffect(()=>{
     if(!SSID){
       const ssid = uuidv4();
@@ -22,6 +25,39 @@ function App() {
       localStorage.setItem("SSID",ssid);
     }
   },[SSID]);
+
+  const fetchMyUrls = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/myurls?ssid=${SSID}`);
+      const data = await response.json();
+      setMyUrls(data);
+    } catch (err) {
+      console.error(err);
+    }
+  }
+
+  useEffect(()=>{
+    if(openDrawer){
+      const handleResize = () => {
+        setDrawerWidth(window.innerWidth < 768 ? '100%' : '50%');
+      };
+  
+      // Set initial width
+      handleResize();
+      fetchMyUrls();
+  
+      // Add event listener for window resize
+      window.addEventListener('resize', handleResize);
+  
+      // Cleanup event listener on component unmount
+      return () => {
+        window.removeEventListener('resize', handleResize);
+      };
+
+    }
+
+  },[openDrawer])
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -111,7 +147,8 @@ function App() {
                 value={shortUrl}
                 style={{ pointerEvents: "none" }}
               />
-              <div className="mt-3 d-flex align-items-center">
+              <div className="mt-3 d-flex flex-column">
+                <div className="mt-3 d-flex align-items-center">
                 <Button size="large" onClick={()=> window.open(shortUrl, "_blank")}>
                   <FaShare />
                 </Button>
@@ -122,15 +159,20 @@ function App() {
                 >
                 <Button className="mx-2" size="large">
                   <FaQrcode />
-                  <span>QR</span>
                 </Button>
                 </Popover>
                 <Button size="large"  onClick={copyToClipboard}>
-                  <FaCopy /> Copy
+                  <FaCopy />
                 </Button>
-                <Button className="ms-2" size="large" onClick={resetFields}>
-                <MdAutorenew />
+                </div>
+                <div className="mt-3 d-flex align-items-center">
+                <Button size="large" onClick={resetFields}>
+                Shorten Another
                 </Button>
+                <Button className="ms-2" size="large" onClick={()=> setOpenDrawer(true)}>
+                  My URLs
+                </Button>
+                </div>
               </div>
               {copySuccess && (
                 <div className="alert alert-success mt-3">{copySuccess}</div>
@@ -142,6 +184,16 @@ function App() {
           &copy; 2024 URL Shortener App
         </div>
       </div>
+      <Drawer width={drawerWidth} title="Your Shortened URLs" onClose={()=> setOpenDrawer(false)} open={openDrawer}>
+        {
+          myUrls.length ? myUrls.map((url, index)=> <div className="card my-2 p-3" key={index}>
+            <h6>{`${import.meta.env.VITE_API_URL}/${url.short_url}`}</h6>
+            <div className="text-success">{url.original_url}</div>
+          </div>)
+          
+          : <p>No shortened URLs found</p>
+        }
+      </Drawer>
     </div>
   );
 }

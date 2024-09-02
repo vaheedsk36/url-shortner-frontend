@@ -1,10 +1,11 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { FaCopy } from "react-icons/fa";
 import QRCodeComponent from "./QRCodeComponent";
 import { Button, Popover, Input } from "antd";
 import { IoLinkSharp } from "react-icons/io5";
 import { FaShare, FaMagic, FaQrcode  } from "react-icons/fa";
 import { MdAutorenew } from "react-icons/md";
+import { v4 as uuidv4 } from 'uuid';
 
 function App() {
   const [originalUrl, setOriginalUrl] = useState("");
@@ -12,6 +13,15 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [copySuccess, setCopySuccess] = useState("");
+  const [SSID,setSSID] = useState(localStorage.getItem("SSID"));
+
+  useEffect(()=>{
+    if(!SSID){
+      const ssid = uuidv4();
+      setSSID(ssid);
+      localStorage.setItem("SSID",ssid);
+    }
+  },[SSID]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,13 +29,12 @@ function App() {
     setError("");
 
     try {
-      console.log(import.meta.env.VITE_API_URL, "---VITE_API_URL---");
       const response = await fetch(`${import.meta.env.VITE_API_URL}/shorten/`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ original_url: originalUrl }),
+        body: JSON.stringify({ original_url: originalUrl, ssid:SSID }),
       });
       if (!response.ok) {
         throw new Error(

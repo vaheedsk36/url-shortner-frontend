@@ -16,7 +16,6 @@ function App() {
   const [openDrawer,setOpenDrawer] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState('100%');
   const [myUrls,setMyUrls] = useState([]);
-
   
   useEffect(()=>{
     if(!SSID){
@@ -55,7 +54,6 @@ function App() {
       };
 
     }
-
   },[openDrawer])
 
 
